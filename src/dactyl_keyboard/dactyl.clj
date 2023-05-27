@@ -85,14 +85,17 @@
 (def mount-height (+ keyswitch-height 2.7))
 
 (def single_switch_slot
-  (let [top-wall (->> (cube (+ keyswitch-width 3) 1.5 (+ plate-thickness 0.5))
+  (let
+       [top-wall (->> (cube (+ keyswitch-width 3) 1.5 (+ plate-thickness 0.5))
                       (translate [0
                                   (+ (/ 1.5 2) (/ keyswitch-height 2))
                                   (- (/ plate-thickness 2) 0.25)]))
+
         left-wall (->> (cube 1.8 (+ keyswitch-height 3) (+ plate-thickness 0.5))
                        (translate [(+ (/ 1.8 2) (/ keyswitch-width 2))
                                    0
                                    (- (/ plate-thickness 2) 0.25)]))
+
         side-nub (->> (binding [*fn* 30] (cylinder 1 2.75))
                       (rotate (/ π 2) [1 0 0])
                       (translate [(+ (/ keyswitch-width 2)) 0 1])
@@ -101,6 +104,7 @@
                                              0
                                              (/ side-nub-thickness 2)])))
                       (translate [0 0 (- plate-thickness side-nub-thickness)]))
+
         plate-half (union top-wall left-wall (if create-side-nubs? (with-fn 100 side-nub)))
         top-nub (->> (cube 5 5 retention-tab-hole-thickness)
                      (translate [(+ (/ keyswitch-width 2.5)) 0 (- (/ retention-tab-hole-thickness 2) 0.5)]))
@@ -108,14 +112,14 @@
                             (->> top-nub
                                  (mirror [1 0 0])
                                  (mirror [0 1 0])))]
-    (difference
-     (union plate-half
-            (->> plate-half
-                 (mirror [1 0 0])
-                 (mirror [0 1 0])))
-     (->>
-      top-nub-pair
-      (rotate (/ π 2) [0 0 1])))))
+
+
+      (difference (union plate-half (->> plate-half
+                                        (mirror [1 0 0])
+                                        (mirror [0 1 0])))
+                  (->> top-nub-pair (rotate (/ π 2) [0 0 1])))
+    )
+  )
 
 ;;;;;;;;;;;;;;;;
 ;; SA Keycaps ;;
@@ -1436,38 +1440,30 @@
 (spit "things/left.scad"
       (write-scad (mirror [-1 0 0] model-right)))
 
+(spit "things/right-plate.scad"
+      (write-scad
+        (extrude-linear
+          {:height 2.6 :center false}
+          (project
+            (difference
+              (union
+                key-holes
+                key-holes-inner
+                pinky-connectors
+                extra-connectors
+                connectors
+                inner-connectors
+                thumb-type
+                thumb-connector-type
+                case-walls
+                thumbcaps-fill-type
+                caps-fill
+                screw-insert-outers)
+              (translate [0 0 -10] screw-insert-screw-holes))))))
+
 ; (spit "things/right-test.scad"
 ;       (write-scad (union model-right
 ;                          thumbcaps-type
 ;                          caps)))
-
-; (spit "things/right-plate.scad"
-;       (write-scad
-;         (extrude-linear
-;           {:height 2.6 :center false}
-;           (project
-;             (difference
-;               (union
-;                 key-holes
-;                 key-holes-inner
-;                 pinky-connectors
-;                 extra-connectors
-;                 connectors
-;                 inner-connectors
-;                 thumb-type
-;                 thumb-connector-type
-;                 case-walls
-;                 thumbcaps-fill-type
-;                 caps-fill
-;                 screw-insert-outers)
-;               (translate [0 0 -10] screw-insert-screw-holes))))))
-
-; (spit "things/right-plate-laser.scad"
-;       (write-scad
-;        (cut
-;         (translate [0 0 -0.1]
-;                    (difference (union case-walls
-;                                       screw-insert-outers)
-;                                (translate [0 0 -10] screw-insert-screw-holes))))))
 
 (defn -main [dum] 1)  ; dummy to make it easier to batch
