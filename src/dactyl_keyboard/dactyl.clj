@@ -13,7 +13,7 @@
 ;; Shape parameters ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(def nrows 5)
+(def nrows 6)
 (def ncols 7)
 
 (def α (/ π 12))                       ; curvature of the columns
@@ -28,7 +28,7 @@
 
 (def extra-row true)                   ; adds an extra bottom row to the outer column(s)
 (def inner-column true)                ; adds an extra inner column (two less rows than nrows)
-(def thumb-style "cf")                 ; toggles between "manuform", "mini", and "cf" thumb cluster
+(def thumb-style "manuform")                 ; toggles between "manuform", "mini", and "cf" thumb cluster
 
 (def column-style :standard)
 
@@ -56,7 +56,7 @@
 
 ; If you use Cherry MX or Gateron switches, this can be turned on.
 ; If you use other switches such as Kailh, you should set this as false
-(def create-side-nubs? false)
+(def create-side-nubs? true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; General variables ;;
@@ -84,7 +84,7 @@
 (def mount-width (+ keyswitch-width 3.2))
 (def mount-height (+ keyswitch-height 2.7))
 
-(def single-plate
+(def single_switch_slot
   (let [top-wall (->> (cube (+ keyswitch-width 3) 1.5 (+ plate-thickness 0.5))
                       (translate [0
                                   (+ (/ 1.5 2) (/ keyswitch-height 2))
@@ -238,7 +238,7 @@
                          (and (.contains [(+ innercol-offset 4)] column) extra-row (= ncols (+ innercol-offset 5)))
                          (and inner-column (not= row cornerrow)(= column 0))
                          (not= row lastrow))]
-           (->> single-plate
+           (->> single_switch_slot
                 ;                (rotate (/ π 2) [0 0 1])
                 (key-place column row)))))
 (def caps
@@ -273,7 +273,7 @@
   (if inner-column
     (apply union
            (for [row innerrows]
-             (->> single-plate
+             (->> single_switch_slot
                   ;               (rotate (/ π 2) [0 0 1])
                   (key-place 0 row))))))
 
@@ -492,10 +492,10 @@
 
 (def thumb
   (union
-   (thumb-1x-layout (rotate (/ π 2) [0 0 0] single-plate))
-   (thumb-tr-place (rotate (/ π 2) [0 0 1] single-plate))
+   (thumb-1x-layout (rotate (/ π 2) [0 0 0] single_switch_slot))
+   (thumb-tr-place (rotate (/ π 2) [0 0 1] single_switch_slot))
    (thumb-tr-place larger-plate)
-   (thumb-tl-place (rotate (/ π 2) [0 0 1] single-plate))
+   (thumb-tl-place (rotate (/ π 2) [0 0 1] single_switch_slot))
    (thumb-tl-place larger-plate-half)))
 
 (def thumb-post-tr (translate [(- (/ mount-width 2) post-adj)  (- (/ mount-height  1.1) post-adj) 0] web-post))
@@ -652,8 +652,8 @@
 
 (def minithumb
   (union
-   (minithumb-1x-layout single-plate)
-   (minithumb-15x-layout single-plate)))
+   (minithumb-1x-layout single_switch_slot)
+   (minithumb-15x-layout single_switch_slot)))
 
 (def minithumb-post-tr (translate [(- (/ mount-width 2) post-adj)  (- (/ mount-height  2) post-adj) 0] web-post))
 (def minithumb-post-tl (translate [(+ (/ mount-width -2) post-adj) (- (/ mount-height  2) post-adj) 0] web-post))
@@ -819,9 +819,9 @@
 
 (def cfthumb
   (union
-   (cfthumb-1x-layout single-plate)
+   (cfthumb-1x-layout single_switch_slot)
    (cfthumb-15x-layout larger-plate-half)
-   (cfthumb-15x-layout single-plate)))
+   (cfthumb-15x-layout single_switch_slot)))
 
 (def cfthumb-connectors
   (union
@@ -1308,7 +1308,7 @@
 ; Offsets for the screw inserts dependent on extra-row & pinky-15u
 (when (and pinky-15u extra-row)
     (def screw-offset-tr [1 7 0])
-    (def screw-offset-br [7 14 0]))
+    (def screw-offset-br [0 14 0]))
 (when (and pinky-15u (false? extra-row))
     (def screw-offset-tr [1 7 0])
     (def screw-offset-br [6.5 15.5 0]))
@@ -1345,13 +1345,15 @@
     (def screw-offset-tm [9.5 -4.5 0])
     (def screw-offset-bm [8 -1 0]))
 
-         (defn screw-insert-all-shapes [bottom-radius top-radius height]
-  (union (screw-insert 0 0         bottom-radius top-radius height [8 10.5 0])
-         (screw-insert 0 lastrow   bottom-radius top-radius height screw-offset-bl)
-         (screw-insert lastcol lastrow  bottom-radius top-radius height screw-offset-br)
-         (screw-insert lastcol 0         bottom-radius top-radius height screw-offset-tr)
-         (screw-insert (+ 2 innercol-offset) 0         bottom-radius top-radius height screw-offset-tm)
-         (screw-insert (+ 1 innercol-offset) lastrow         bottom-radius top-radius height screw-offset-bm)))
+(defn screw-insert-all-shapes [bottom-radius top-radius height]
+    (union
+        (screw-insert 0                     0        bottom-radius top-radius height [8 10.5 0])
+        (screw-insert 0                     lastrow  bottom-radius top-radius height screw-offset-bl)
+        (screw-insert lastcol               lastrow  bottom-radius top-radius height screw-offset-br)
+        (screw-insert lastcol               0        bottom-radius top-radius height screw-offset-tr)
+        (screw-insert (+ 2 innercol-offset) 0        bottom-radius top-radius height screw-offset-tm)
+        (screw-insert (+ 1 innercol-offset) lastrow  bottom-radius top-radius height screw-offset-bm)
+    ))
 
 ; Hole Depth Y: 4.4
 (def screw-insert-height 6)
@@ -1428,41 +1430,44 @@
 (spit "things/right.scad"
       (write-scad model-right))
 
+(spit "things/single_swith_slot.scad"
+      (write-scad single_switch_slot))
+
 (spit "things/left.scad"
       (write-scad (mirror [-1 0 0] model-right)))
 
-(spit "things/right-test.scad"
-      (write-scad (union model-right
-                         thumbcaps-type
-                         caps)))
+; (spit "things/right-test.scad"
+;       (write-scad (union model-right
+;                          thumbcaps-type
+;                          caps)))
 
-(spit "things/right-plate.scad"
-      (write-scad
-        (extrude-linear
-          {:height 2.6 :center false}
-          (project
-            (difference
-              (union
-                key-holes
-                key-holes-inner
-                pinky-connectors
-                extra-connectors
-                connectors
-                inner-connectors
-                thumb-type
-                thumb-connector-type
-                case-walls
-                thumbcaps-fill-type
-                caps-fill
-                screw-insert-outers)
-              (translate [0 0 -10] screw-insert-screw-holes))))))
+; (spit "things/right-plate.scad"
+;       (write-scad
+;         (extrude-linear
+;           {:height 2.6 :center false}
+;           (project
+;             (difference
+;               (union
+;                 key-holes
+;                 key-holes-inner
+;                 pinky-connectors
+;                 extra-connectors
+;                 connectors
+;                 inner-connectors
+;                 thumb-type
+;                 thumb-connector-type
+;                 case-walls
+;                 thumbcaps-fill-type
+;                 caps-fill
+;                 screw-insert-outers)
+;               (translate [0 0 -10] screw-insert-screw-holes))))))
 
-(spit "things/right-plate-laser.scad"
-      (write-scad
-       (cut
-        (translate [0 0 -0.1]
-                   (difference (union case-walls
-                                      screw-insert-outers)
-                               (translate [0 0 -10] screw-insert-screw-holes))))))
+; (spit "things/right-plate-laser.scad"
+;       (write-scad
+;        (cut
+;         (translate [0 0 -0.1]
+;                    (difference (union case-walls
+;                                       screw-insert-outers)
+;                                (translate [0 0 -10] screw-insert-screw-holes))))))
 
 (defn -main [dum] 1)  ; dummy to make it easier to batch
