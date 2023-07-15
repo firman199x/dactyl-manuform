@@ -84,9 +84,49 @@
 (def mount-width (+ keyswitch-width 3.2))
 (def mount-height (+ keyswitch-height 2.7))
 
+(defn single-plate [mirror-socket-cradle]
+  (let [top-wall (->> (cube (+ keyswitch-width 3) 1.5 plate-thickness)
+                      (translate [0
+                                  (+ (/ 1.5 2) (/ keyswitch-height 2))
+                                  (/ plate-thickness 2)]))
+        left-wall (->> (cube 2 (+ keyswitch-height 3) plate-thickness)
+                       (translate [(+ (/ 1.5 2) (/ keyswitch-width 2))
+                                   0
+                                   (/ plate-thickness 2)]))
+        kailh-cutout (->> (cube (/ keyswitch-width 3) 1.6 (+ plate-thickness 1))
+                          (translate [0
+                                  (+ (/ 1.5 2) (+ (/ keyswitch-height 2)))
+                                  (/ plate-thickness)]))
+        kailh-socket-cradle (difference 
+                                (union 
+                                    (->>  (cube (+ keyswitch-width 3.5) 1.5 2.875)
+                                          (translate [0
+                                                    (- (+ (/ 1.5 2) (/ keyswitch-height 2)))
+                                                    (- 0.9375)]))
+                                    (->>  (cube 3 5.5 1.25)
+                                          (translate [0.5 (- 5.85) (- 1.75)]))))                                                            
+        side-nub (->> (binding [*fn* 30] (cylinder 1 2.75))
+                      (rotate (/ π 2) [1 0 0])
+                      (translate [(+ (/ keyswitch-width 2)) 0 1])
+                      (hull (->> (cube 1.5 2.75 side-nub-thickness)
+                                 (translate [(+ (/ 1.5 2) (/ keyswitch-width 2))
+                                             0
+                                             (/ side-nub-thickness 2)])))
+                      (translate [0 0 (- plate-thickness side-nub-thickness)]))
+        plate-half (union (union (difference top-wall kailh-cutout) left-wall) (if create-side-nubs? (with-fn 100 side-nub)) )]
+    (union plate-half
+           (->> plate-half
+                (mirror [1 0 0])
+                (mirror [0 1 0]))
+          (->> kailh-socket-cradle
+                (mirror [(if mirror-socket-cradle 1 0) 0 0]))               
+    )))
+
 (def single_switch_slot
   (let
-       [top-wall (->> (cube (+ keyswitch-width 3) 1.5 (+ plate-thickness 0.5))
+       [
+        bottom-wall (->> (cube 3 3 3))
+        top-wall (->> (cube (+ keyswitch-width 3) 1.5 (+ plate-thickness 0.5))
                       (translate [0
                                   (+ (/ 1.5 2) (/ keyswitch-height 2))
                                   (- (/ plate-thickness 2) 0.25)]))
@@ -1431,39 +1471,45 @@
                                  screw-insert-holes))
                    (translate [0 0 -20] (cube 350 350 40))))
 
-(spit "things/right.scad"
-      (write-scad model-right))
+(spit "things/switch-hole.scad"
+      (write-scad (single-plate false)))
 
-(spit "things/single_swith_slot.scad"
+(spit "things/single_swith_slot.scad",
       (write-scad single_switch_slot))
 
-(spit "things/left.scad"
-      (write-scad (mirror [-1 0 0] model-right)))
+;;;;;;;;;;;;;;;;;;;;;;
+;; (spit "things/right.scad"
+;;       (write-scad model-right))
 
-(spit "things/right-plate.scad"
-      (write-scad
-        (extrude-linear
-          {:height 2.6 :center false}
-          (project
-            (difference
-              (union
-                key-holes
-                key-holes-inner
-                pinky-connectors
-                extra-connectors
-                connectors
-                inner-connectors
-                thumb-type
-                thumb-connector-type
-                case-walls
-                thumbcaps-fill-type
-                caps-fill
-                screw-insert-outers)
-              (translate [0 0 -10] screw-insert-screw-holes))))))
 
-; (spit "things/right-test.scad"
-;       (write-scad (union model-right
-;                          thumbcaps-type
-;                          caps)))
+;; (spit "things/left.scad"
+;;       (write-scad (mirror [-1 0 0] model-right)))
+
+;; (spit "things/right-plate.scad"
+;;       (write-scad
+;;         (extrude-linear
+;;           {:height 2.6 :center false}
+;;           (project
+;;             (difference
+;;               (union
+;;                 key-holes
+;;                 key-holes-inner
+;;                 pinky-connectors
+;;                 extra-connectors
+;;                 connectors
+;;                 inner-connectors
+;;                 thumb-type
+;;                 thumb-connector-type
+;;                 case-walls
+;;                 thumbcaps-fill-type
+;;                 caps-fill
+;;                 screw-insert-outers)
+;;               (translate [0 0 -10] screw-insert-screw-holes))))))
+
+;; (spit "things/right-test.scad"
+;;       (write-scad (union model-right
+;;                          thumbcaps-type
+;;                          caps)))
+;;;;;;;;;;;;;;;;;;;;;;
 
 (defn -main [dum] 1)  ; dummy to make it easier to batch
