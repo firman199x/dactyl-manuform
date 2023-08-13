@@ -1509,6 +1509,27 @@
 ;                 screw-insert-outers)
 ;               (translate [0 0 -10] screw-insert-screw-holes))))))
 
+(spit "things/left-plate.scad"
+      (write-scad
+        ( mirror [0 1 0] (extrude-linear
+          {:height 2.6 :center false}
+          (project
+            (difference
+              (union
+                key-holes
+                key-holes-inner
+                pinky-connectors
+                extra-connectors
+                connectors
+                inner-connectors
+                thumb-type
+                thumb-connector-type
+                case-walls
+                thumbcaps-fill-type
+                caps-fill
+                screw-insert-outers)
+              (translate [0 0 -10] screw-insert-screw-holes)))))))
+
 ;; (spit "things/right-test.scad"
 ;;       (write-scad (union model-right
 ;;                          thumbcaps-type
