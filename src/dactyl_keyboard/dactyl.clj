@@ -84,7 +84,8 @@
 (def mount-width (+ keyswitch-width 3.2))
 (def mount-height (+ keyswitch-height 2.7))
 
-(defn single-plate [mirror-socket-cradle]
+(def is-right false)
+(def single-plate
   (let [top-wall (->> (cube (+ keyswitch-width 3) 1.5 plate-thickness)
                       (translate [0
                                   (+ (/ 1.5 2) (/ keyswitch-height 2))
@@ -97,14 +98,14 @@
                           (translate [0
                                   (+ (/ 1.5 2) (+ (/ keyswitch-height 2)))
                                   (/ plate-thickness)]))
-        kailh-socket-cradle (difference 
-                                (union 
+        kailh-socket-cradle (difference
+                                (union
                                     (->>  (cube (+ keyswitch-width 3.5) 1.5 2.875)
                                           (translate [0
                                                     (- (+ (/ 1.5 2) (/ keyswitch-height 2)))
                                                     (- 0.9375)]))
                                     (->>  (cube 3 5.5 1.25)
-                                          (translate [0.5 (- 5.85) (- 1.75)]))))                                                            
+                                          (translate [0.5 (- 5.85) (- 1.75)]))))
         side-nub (->> (binding [*fn* 30] (cylinder 1 2.75))
                       (rotate (/ π 2) [1 0 0])
                       (translate [(+ (/ keyswitch-width 2)) 0 1])
@@ -119,7 +120,9 @@
                 (mirror [1 0 0])
                 (mirror [0 1 0]))
           (->> kailh-socket-cradle
-                (mirror [(if mirror-socket-cradle 1 0) 0 0]))               
+                (mirror [(if is-right 0 1) 0 0])
+                (rotate (/ π 1) [0 0 1]))
+                ; (mirror [(if mirror-socket-cradle 1 0) 0 0]))
     )))
 
 (def single_switch_slot
@@ -282,7 +285,7 @@
                          (and (.contains [(+ innercol-offset 4)] column) extra-row (= ncols (+ innercol-offset 5)))
                          (and inner-column (not= row cornerrow)(= column 0))
                          (not= row lastrow))]
-           (->> single_switch_slot
+           (->> single-plate
                 ;                (rotate (/ π 2) [0 0 1])
                 (key-place column row)))))
 (def caps
@@ -317,7 +320,7 @@
   (if inner-column
     (apply union
            (for [row innerrows]
-             (->> single_switch_slot
+             (->> single-plate
                   ;               (rotate (/ π 2) [0 0 1])
                   (key-place 0 row))))))
 
@@ -536,10 +539,10 @@
 
 (def thumb
   (union
-   (thumb-1x-layout (rotate (/ π 2) [0 0 0] single_switch_slot))
-   (thumb-tr-place (rotate (/ π 2) [0 0 1] single_switch_slot))
+   (thumb-1x-layout (rotate (/ π 2) [0 0 0]  single-plate))
+   (thumb-tr-place (rotate (/ π 2) [0 0 0]  single-plate))
    (thumb-tr-place larger-plate)
-   (thumb-tl-place (rotate (/ π 2) [0 0 1] single_switch_slot))
+   (thumb-tl-place (rotate (/ π 2) [0 0 0]  single-plate))
    (thumb-tl-place larger-plate-half)))
 
 (def thumb-post-tr (translate [(- (/ mount-width 2) post-adj)  (- (/ mount-height  1.1) post-adj) 0] web-post))
@@ -696,8 +699,8 @@
 
 (def minithumb
   (union
-   (minithumb-1x-layout single_switch_slot)
-   (minithumb-15x-layout single_switch_slot)))
+   (minithumb-1x-layout  single-plate)
+   (minithumb-15x-layout  single-plate)))
 
 (def minithumb-post-tr (translate [(- (/ mount-width 2) post-adj)  (- (/ mount-height  2) post-adj) 0] web-post))
 (def minithumb-post-tl (translate [(+ (/ mount-width -2) post-adj) (- (/ mount-height  2) post-adj) 0] web-post))
@@ -863,9 +866,9 @@
 
 (def cfthumb
   (union
-   (cfthumb-1x-layout single_switch_slot)
+   (cfthumb-1x-layout  single-plate)
    (cfthumb-15x-layout larger-plate-half)
-   (cfthumb-15x-layout single_switch_slot)))
+   (cfthumb-15x-layout  single-plate)))
 
 (def cfthumb-connectors
   (union
@@ -1000,7 +1003,7 @@
   (hull p (bottom 0.001 p)))
 
 (def left-wall-x-offset (if inner-column 4 9))
-(def left-wall-z-offset 1) 
+(def left-wall-z-offset 1)
 
 (defn left-key-position [row direction]
   (map - (key-position 0 row [(* mount-width -0.5) (* direction mount-height 0.5) 0]) [left-wall-x-offset 0 left-wall-z-offset]) )
@@ -1362,7 +1365,7 @@
 (when (and (false? pinky-15u) (false? extra-row))
     (def screw-offset-tr [-4 6.5 0])
     (def screw-offset-br [-6 13 0]))
-    
+
 ; Offsets for the screw inserts dependent on thumb-style & inner-column
 (when (and (= thumb-style "cf") inner-column)
     (def screw-offset-bl [9 4 0])
@@ -1471,40 +1474,40 @@
                                  screw-insert-holes))
                    (translate [0 0 -20] (cube 350 350 40))))
 
-(spit "things/switch-hole.scad"
-      (write-scad (single-plate false)))
+; (spit "things/switch-hole.scad"
+;       (write-scad single-plate))
 
-(spit "things/single_swith_slot.scad",
-      (write-scad single_switch_slot))
+;; (spit "things/single_swith_slot.scad",
+;;       (write-scad single_switch_slot))
 
 ;;;;;;;;;;;;;;;;;;;;;;
-;; (spit "things/right.scad"
-;;       (write-scad model-right))
+; (spit "things/right.scad"
+;       (write-scad model-right))
 
 
-;; (spit "things/left.scad"
-;;       (write-scad (mirror [-1 0 0] model-right)))
+(spit "things/left.scad"
+      (write-scad (mirror [-1 0 0] model-right)))
 
-;; (spit "things/right-plate.scad"
-;;       (write-scad
-;;         (extrude-linear
-;;           {:height 2.6 :center false}
-;;           (project
-;;             (difference
-;;               (union
-;;                 key-holes
-;;                 key-holes-inner
-;;                 pinky-connectors
-;;                 extra-connectors
-;;                 connectors
-;;                 inner-connectors
-;;                 thumb-type
-;;                 thumb-connector-type
-;;                 case-walls
-;;                 thumbcaps-fill-type
-;;                 caps-fill
-;;                 screw-insert-outers)
-;;               (translate [0 0 -10] screw-insert-screw-holes))))))
+; (spit "things/right-plate.scad"
+;       (write-scad
+;         (extrude-linear
+;           {:height 2.6 :center false}
+;           (project
+;             (difference
+;               (union
+;                 key-holes
+;                 key-holes-inner
+;                 pinky-connectors
+;                 extra-connectors
+;                 connectors
+;                 inner-connectors
+;                 thumb-type
+;                 thumb-connector-type
+;                 case-walls
+;                 thumbcaps-fill-type
+;                 caps-fill
+;                 screw-insert-outers)
+;               (translate [0 0 -10] screw-insert-screw-holes))))))
 
 ;; (spit "things/right-test.scad"
 ;;       (write-scad (union model-right
